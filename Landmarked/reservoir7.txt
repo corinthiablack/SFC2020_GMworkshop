@@ -1,0 +1,23 @@
+<shapes type=list>
+	<scaling type=logical names=FALSE length=1 as.numeric=FALSE >NA</scaling>
+	<landmarks.pixel type=matrix rownames=TRUE colnames=FALSE nrow=12 ncol=2 as.numeric=TRUE >
+		anterior-mouth	1253	1110
+		posterior-mouth	1386	1238
+		eye-center	1498	1064
+		nape	1975	613
+		anterior-dorsal-fin-insertion	2802	450
+		dorsal-caudal-fin-insertion	4204	783
+		ventral-caudal-fin-insertion	4188	1228
+		anterior-anal-fin-insertion	3242	1499
+		anterior-pelvic-fin-insertion	2731	1566
+		anterior-pectoral-fin-insertion	1964	1366
+		operculum-base-isthmus	1754	1422
+		operculum-posterior-edge	1974	1187
+	</landmarks.pixel>
+	<ruler.points type=matrix rownames=TRUE colnames=FALSE nrow=3 ncol=2 as.numeric=TRUE >
+		Ruler point 1	3130	2604
+		Ruler point 2	3616	2625
+		Ruler point 3	4096	2640
+	</ruler.points>
+</shapes>
+

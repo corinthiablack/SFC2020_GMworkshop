@@ -1,0 +1,12 @@
+anterior-mouth
+posterior-mouth
+eye-center
+nape
+anterior-dorsal-fin-insertion
+dorsal-caudal-fin-insertion
+ventral-caudal-fin-insertion
+anterior-anal-fin-insertion
+anterior-pelvic-fin-insertion
+anterior-pectoral-fin-insertion
+operculum-base-isthmus
+operculum-posterior-edge

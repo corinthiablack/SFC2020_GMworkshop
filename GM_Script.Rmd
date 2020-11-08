@@ -1,0 +1,95 @@
+---
+title: "SFC GM Workshop"
+author: "Corinthia Black"
+date: "10/26/2020"
+output: html_document
+---
+
+## Libraries
+   This block contains the libraries you need to preform the following:
+      landmarking = StereoMorph
+                    (https://aaronolsen.github.io/software/stereomorph.html)
+      analysis = geomorph
+                    (https://cran.r-project.org/web/packages/geomorph/geomorph.pdf)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("StereoMorph")
+  #landmarking program - can use 
+library(StereoMorph)
+#install.packages("geomorph")
+library(geomorph)
+#install.packages("Morpho")
+library(Morpho)
+```
+
+## Landmark Specimens
+```{r Landmarking}
+## Digitize Images
+  # Click box 'Automatically save when advancing to next image' under Settings tab
+  # Use X to place landmark, N to advance to next landmark, D to delete selected landmark
+    # digitizeImages() with the following parameters: image.file (an image or folder of images to be digitized) and shapes.file (a file or folder where the digitized data will be saved)
+
+digitizeImages(image.file ="Example_Dataset", shapes.file = "Landmarked", landmarks.ref="landmarks.txt")
+```
+
+## Analysis
+```{r Analysis}
+# Read all shape data from all files
+shapes=readShapes('Landmarked/')
+landmarks=shapes$landmarks.pixel
+any(is.na(landmarks))
+
+# Read classifier data
+classifier=read.csv("classifiers.csv", header=T, row.names = 1)
+
+
+gpa=gpagen(landmarks)
+
+plot(gpa)
+
+links=read.csv("links.csv", header = F)
+plotAllSpecimens(gpa$coords, links=links)
+
+
+#PCA
+PCA=gm.prcomp(gpa$coords)
+
+summary(PCA)
+
+PCAplot=plot(PCA)
+
+plot(PCA, pch=22, cex=1.5, bg=classifier$Location)
+text(PCA$x, labels = labels(PCA$x)[[1]], pos=2)
+
+
+#how to view shapes
+meanshape=mshape(gpa$coords)
+plot(meanshape)
+
+plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$min, method = "points", links = links)
+plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$max, method = "points", links = links)
+plotRefToTarget(PCA$shapes$shapes.comp1$min, PCA$shapes$shapes.comp1$max, method = "points", links = links)
+
+
+#ANOVA
+fit=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize + classifier$Location*gpa$Csize)
+summary(fit)
+
+fit1=procD.lm(gpa$coords ~ classifier$Location)
+summary(fit1)
+
+fit2=procD.lm(gpa$coords ~ gpa$Csize)
+summary(fit2)
+
+fit3=procD.lm(gpa$coords ~ classifier$Location*gpa$Csize)
+summary(fit3)
+```
+
+```{r}
+cva=CVA(gpa$coords, classifier$Location)
+
+print(cva)
+
+plot(cva$CVscores, col=classifier$Location, pch=22, cex=1.5)
+```
+
