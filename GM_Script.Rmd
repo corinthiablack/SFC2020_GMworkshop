@@ -42,11 +42,16 @@ any(is.na(landmarks))
 # Read classifier data
 classifier=read.csv("classifiers.csv", header=T, row.names = 1)
 
-
 gpa=gpagen(landmarks)
 
 plot(gpa)
 
+meanshape=mshape(gpa$coords)
+plot(meanshape)
+```
+
+```{r Analysis}
+#How to know what landmarks are what
 links=read.csv("links.csv", header = F)
 plotAllSpecimens(gpa$coords, links=links)
 
@@ -63,26 +68,22 @@ text(PCA$x, labels = labels(PCA$x)[[1]], pos=2)
 
 
 #how to view shapes
-meanshape=mshape(gpa$coords)
-plot(meanshape)
-
+#method = c("TPS", "vector", "points", "surface")
 plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$min, method = "points", links = links)
 plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$max, method = "points", links = links)
 plotRefToTarget(PCA$shapes$shapes.comp1$min, PCA$shapes$shapes.comp1$max, method = "points", links = links)
 
+----
 
 #ANOVA
 fit=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize + classifier$Location*gpa$Csize)
 summary(fit)
 
-fit1=procD.lm(gpa$coords ~ classifier$Location)
-summary(fit1)
-
 fit2=procD.lm(gpa$coords ~ gpa$Csize)
 summary(fit2)
 
-fit3=procD.lm(gpa$coords ~ classifier$Location*gpa$Csize)
-summary(fit3)
+#Simple first
+anova(fit2, fit)
 ```
 
 ```{r}
