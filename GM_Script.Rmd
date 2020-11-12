@@ -18,8 +18,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(StereoMorph)
 #install.packages("geomorph")
 library(geomorph)
-#install.packages("Morpho")
-library(Morpho)
 ```
 
 ## Landmark Specimens
@@ -33,64 +31,89 @@ digitizeImages(image.file ="Example_Dataset", shapes.file = "Landmarked", landma
 ```
 
 ## Analysis
-```{r Analysis}
+You can easily read the shapes files into R using the readShapes() function in StereoMorph
+```{r Read shapes}
 # Read all shape data from all files
 shapes=readShapes('Landmarked/')
-landmarks=shapes$landmarks.pixel
+
+# readShape() produces a list with several elements
+  # Landmarks are saved as landmarks.pixel OR landmarks.scaled (either matrix will work)
+  # We will save the landmarks as it's own element for futher analyses
+landmarks=shapes$landmarks.scaled
+
+# This step checks to see if there are any missing landmark data. If so, you can go back and fix the data, or use estimate.missing() in geomorph if needed
 any(is.na(landmarks))
+```
 
-# Read classifier data
-classifier=read.csv("classifiers.csv", header=T, row.names = 1)
+This chunk will run the GPA and estimate the meanshape of all our data (to be used later)
+```{r GPA} 
+# use gpagen() in geomorph to correct for orientation, translation and size
+gpa=gpagen(landmarks) #saves as large list (coords = shape files; Csize = centroid size)
 
-gpa=gpagen(landmarks)
-
+# plot your superimposed specimens
+  # this step can be used to find outliers which may need landmarks corrected
 plot(gpa)
 
+# estimate the mean shape of all data
+  # need mean data to visualize shape change across components
 meanshape=mshape(gpa$coords)
-plot(meanshape)
-```
+plot(meanshape) #NOTE: this function returns a mean shape with numbers in place of landmark names. These numbers will be used to create a links file that can outline the shape
 
-```{r Analysis}
-#How to know what landmarks are what
+# Use landmark numbers to generate a file that will link landmarks together with a line (this file is already provided for you)
 links=read.csv("links.csv", header = F)
 plotAllSpecimens(gpa$coords, links=links)
+```
 
+```{r PCA}
+# We will use classifier information to produce colored PCAs and in statistics
+  # in this case we are comparing stream and reservoir fishes
+classifier=read.csv("classifiers.csv", header=T, row.names = 1)
 
-#PCA
+# Preform the PCA using the GPA landmark coordinates
 PCA=gm.prcomp(gpa$coords)
 
+# To find out the importance of each component
 summary(PCA)
 
-PCAplot=plot(PCA)
+# Generic plot of first 2 components
+plot(PCA)
 
+# Let's add colors for the different groups and labels
 plot(PCA, pch=22, cex=1.5, bg=classifier$Location)
-text(PCA$x, labels = labels(PCA$x)[[1]], pos=2)
+text(PCA$x, labels = labels(PCA$x)[[1]], pos=3) #change position of text with pos (1=under, 2=left, 3=above, 4=right)
 
+# To view what the shape changes are along the component use plotRefToTarget
+  # The first shape listed will be grey and the last will be black
+  # Shapes are found in the PCA list (see example below)
+plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$min, method = "points", links = links) # mean shape vs negative end of PC1
+#method = "TPS", "vector", "points", or "surface" (surface only works with 3D data) try the different methods
 
-#how to view shapes
-#method = c("TPS", "vector", "points", "surface")
-plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$min, method = "points", links = links)
-plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$max, method = "points", links = links)
-plotRefToTarget(PCA$shapes$shapes.comp1$min, PCA$shapes$shapes.comp1$max, method = "points", links = links)
+plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$max, method = "points", links = links) # mean shape vs positive end of PC1
 
-----
-
-#ANOVA
-fit=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize + classifier$Location*gpa$Csize)
-summary(fit)
-
-fit2=procD.lm(gpa$coords ~ gpa$Csize)
-summary(fit2)
-
-#Simple first
-anova(fit2, fit)
+plotRefToTarget(PCA$shapes$shapes.comp1$min, PCA$shapes$shapes.comp1$max, method = "points", links = links) #negative end of PC1 vs postitive end of PC1
 ```
 
+PCA is a great way to visualize differences, but we only see part of the story. If you look at the other components, there is a ton of shape data that is unaccounted for in the PCA plots.
+We could plot all the PCs in 2- and 3-dimentions, but we can also use statistics to see if the total shape is actually different.
+To do that, we will use a procrusties ANOVA
+```{r ANOVA}
+# To run a procrusties ANOVA we need a linear model. Our hypothesis wants to know if there are shape differences between stream fish and reservoir fish. We are also interested in if size may be a factor.
+  # can change sum of squares type: type I (sequential), type II (hierarchical), or type III (marginal) sums of squares and cross-products computation - good summary here http://www.utstat.utoronto.ca/reid/sta442f/2009/typeSS.pdf
+fit.complex=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize + classifier$Location*gpa$Csize, SS.type = "III")
+summary(fit.complex)
+
+fit.size=procD.lm(gpa$coords ~ gpa$Csize, SS.type = "III")
+summary(fit.size)
+
+# F-drop Test: is p < 0.05 = complex model is best
+  # more complex model goes 1st followed by less complex
+anova(fit.size, fit.complex) #because the p-value is greater than 0.05 = simple model is best
+```
+
+## Allometric analysis
 ```{r}
-cva=CVA(gpa$coords, classifier$Location)
+## Plot prediction and Regression score
+plot(fit.size, type="regression", reg.type = "RegScore", predictor = log(gpa$Csize), bg=classifier$Location, pch=22, cex=1.5)
 
-print(cva)
-
-plot(cva$CVscores, col=classifier$Location, pch=22, cex=1.5)
+plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=classifier$Location, pch=22, cex=1.5)
 ```
-
