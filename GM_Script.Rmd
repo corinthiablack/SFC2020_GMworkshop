@@ -34,6 +34,7 @@ digitizeImages(image.file ="Example_Dataset", shapes.file = "Landmarked", landma
 You can easily read the shapes files into R using the readShapes() function in StereoMorph
 ```{r Read shapes}
 # Read all shape data from all files
+  # WINDOWS USERS use shapes=readShapes('Landmarked')
 shapes=readShapes('Landmarked/')
 
 # readShape() produces a list with several elements
