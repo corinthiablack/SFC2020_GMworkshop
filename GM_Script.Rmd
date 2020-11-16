@@ -13,8 +13,7 @@ output: html_document
                     (https://cran.r-project.org/web/packages/geomorph/geomorph.pdf)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-#install.packages("StereoMorph")
-  #landmarking program - can use 
+#install.packages("StereoMorph") #landmarking program
 library(StereoMorph)
 #install.packages("geomorph")
 library(geomorph)
@@ -80,7 +79,7 @@ summary(PCA)
 plot(PCA)
 
 # Let's add colors for the different groups and labels
-plot(PCA, pch=22, cex=1.5, bg=classifier$Location)
+plot(PCA, pch=22, cex=1.5, bg=as.numeric(classifier$Location))
 text(PCA$x, labels = labels(PCA$x)[[1]], pos=3) #change position of text with pos (1=under, 2=left, 3=above, 4=right)
 
 # To view what the shape changes are along the component use plotRefToTarget
@@ -95,26 +94,50 @@ plotRefToTarget(PCA$shapes$shapes.comp1$min, PCA$shapes$shapes.comp1$max, method
 ```
 
 PCA is a great way to visualize differences, but we only see part of the story. If you look at the other components, there is a ton of shape data that is unaccounted for in the PCA plots.
-We could plot all the PCs in 2- and 3-dimentions, but we can also use statistics to see if the total shape is actually different.
+We could plot all the PCs in 2- or 3-dimensions, but we can also use statistics to see if the total shape is actually different.
+
 To do that, we will use a procrusties ANOVA
 ```{r ANOVA}
 # To run a procrusties ANOVA we need a linear model. Our hypothesis wants to know if there are shape differences between stream fish and reservoir fish. We are also interested in if size may be a factor.
   # can change sum of squares type: type I (sequential), type II (hierarchical), or type III (marginal) sums of squares and cross-products computation - good summary here http://www.utstat.utoronto.ca/reid/sta442f/2009/typeSS.pdf
+
+fit.location=procD.lm(gpa$coords ~ classifier$Location, SS.type = "III")
+summary(fit.location)
+
 fit.complex=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize + classifier$Location*gpa$Csize, SS.type = "III")
 summary(fit.complex)
 
+# F-drop Test: is p < 0.05 = complex model is best
+  # more complex model goes 1st followed by less complex
+anova(fit.location, fit.complex)
+```
+
+Size might also account for shape variation (small fish are slim vs large fish are more rotund)
+
+To analyze this, we can use allometric analyses
+```{r Allometric analysis}
+# To test for allometry, we use the same format as the procrusties ANOVA!
 fit.size=procD.lm(gpa$coords ~ gpa$Csize, SS.type = "III")
 summary(fit.size)
 
-# F-drop Test: is p < 0.05 = complex model is best
-  # more complex model goes 1st followed by less complex
-anova(fit.size, fit.complex) #because the p-value is greater than 0.05 = simple model is best
-```
+# Plot prediction and Regression score
+  # RegScore calculates a regression score as a projection of data on normalized vector that expresses the covariation between shape and the regression coefficients for size, conditioned on other model effects
+    # For a single allometry, these shape scores are mathematically identical to the CAC [common allometric component of the shape data] (Adams et al. 2013).
+  # Prediction line (PredLine) plots the first PC of fitted values against size
+#http://search.r-project.org/library/geomorph/html/plotAllometry.html
+#https://rdrr.io/cran/geomorph/man/shape.predictor.html
 
-## Allometric analysis
-```{r}
-## Plot prediction and Regression score
-plot(fit.size, type="regression", reg.type = "RegScore", predictor = log(gpa$Csize), bg=classifier$Location, pch=22, cex=1.5)
+#Regression score
+reg.plot = plot(fit.size, type="regression", reg.type = "RegScore", predictor = log(gpa$Csize), bg=as.numeric(classifier$Location), pch=22, cex=1.5) # make sure to have a predictor 
 
-plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=classifier$Location, pch=22, cex=1.5)
+preds = shape.predictor(fit.size$GM$fitted, x= reg.plot$RegScore, Intercept=F, 
+                         predmin = min(reg.plot$RegScore),
+                         predmax = max(reg.plot$RegScore))
+
+plotRefToTarget(meanshape, preds$predmin, mag=3, method = "points", links = links)
+plotRefToTarget(meanshape, preds$predmax, mag=3, method = "points", links = links)
+
+
+# Prediction line
+pred.plot = plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=as.numeric(classifier$Location), pch=22, cex=1.5)
 ```
