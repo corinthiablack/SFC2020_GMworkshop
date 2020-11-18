@@ -19,7 +19,7 @@ library(StereoMorph)
 library(geomorph)
 ```
 
-## Landmark Specimens
+## Landmark Specimens *Cori
 ```{r Landmarking}
 ## Digitize Images
   # Click box 'Automatically save when advancing to next image' under Settings tab
@@ -29,7 +29,7 @@ library(geomorph)
 digitizeImages(image.file ="Example_Dataset", shapes.file = "Landmarked", landmarks.ref="landmarks.txt")
 ```
 
-## Analysis
+## Analysis *Cori
 You can easily read the shapes files into R using the readShapes() function in StereoMorph
 ```{r Read shapes}
 # Read all shape data from all files
@@ -45,7 +45,7 @@ landmarks=shapes$landmarks.scaled
 any(is.na(landmarks))
 ```
 
-This chunk will run the GPA and estimate the meanshape of all our data (to be used later)
+This chunk will run the GPA and estimate the meanshape of all our data (to be used later) *Dan
 ```{r GPA} 
 # use gpagen() in geomorph to correct for orientation, translation and size
 gpa=gpagen(landmarks) #saves as large list (coords = shape files; Csize = centroid size)
@@ -64,6 +64,7 @@ links=read.csv("links.csv", header = F)
 plotAllSpecimens(gpa$coords, links=links)
 ```
 
+*Cori
 ```{r PCA}
 # We will use classifier information to produce colored PCAs and in statistics
   # in this case we are comparing stream and reservoir fishes
@@ -101,7 +102,7 @@ plotRefToTarget(PCA$shapes$shapes.comp1$min, PCA$shapes$shapes.comp1$max, method
 PCA is a great way to visualize differences, but we only see part of the story. If you look at the other components, there is a ton of shape data that is unaccounted for in the PCA plots.
 We could plot all the PCs in 2- or 3-dimensions, but we can also use statistics to see if the total shape is actually different.
 
-To do that, we will use a procrusties ANOVA
+To do that, we will use a procrusties ANOVA *Dan
 ```{r ANOVA}
 # To run a procrusties ANOVA we need a linear model. Our hypothesis wants to know if there are shape differences between stream fish and reservoir fish. We are also interested in if size may be a factor.
   # can change sum of squares type: type I (sequential), type II (hierarchical), or type III (marginal) sums of squares and cross-products computation - good summary here http://www.utstat.utoronto.ca/reid/sta442f/2009/typeSS.pdf
@@ -109,22 +110,22 @@ To do that, we will use a procrusties ANOVA
 fit.location=procD.lm(gpa$coords ~ classifier$Location, SS.type = "III")
 summary(fit.location)
 
-fit.complex=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize + classifier$Location*gpa$Csize, SS.type = "III")
+fit.complex=procD.lm(gpa$coords ~ classifier$Location + gpa$Csize, SS.type = "III")
 summary(fit.complex)
 
 # F-drop Test: is p < 0.05 = complex model is best
   # more complex model goes 1st followed by less complex
-anova(fit.location, fit.complex)
+anova(fit.complex, fit.location)
 ```
 
-To view differences between groups, use pairwise in RRPP (this package is a requirement of geomorph, so you do not need to install it separately)
+To view differences between groups, use pairwise in RRPP (this package is a requirement of geomorph, so you do not need to install it separately) *Dan
 ```{r Pairwise Comparisons}
 PW=pairwise(fit.location, groups = classifier$Location) #specify the groups that you want to compare
-summary(PW, confidence = 0.95, test.type = "dist") # Euclidian distance between means
+summary(PW, confidence = 0.95, test.type = "dist") #Euclidian distance between means
 summary(PW, confidence = 0.95, test.type = "VC", angle.type = "deg") #correlation between mean vectors (angles in degrees)
 ```
 
-Size might also account for shape variation (small fish are slim vs large fish are more rotund)
+Size might also account for shape variation (small fish are slim vs large fish are more rotund) *Cori
 
 To analyze this, we can use allometric analyses
 
@@ -160,5 +161,5 @@ plotRefToTarget(meanshape, preds$predmax, mag=3, method = "points", links = link
 
 
 # Prediction line
-pred.plot = plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=plot.col, pch=22, cex=1.5)
+pred.plot = plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=plot.col, pch=22, cex=1.5) #use to predict shape of missing sizes
 ```
