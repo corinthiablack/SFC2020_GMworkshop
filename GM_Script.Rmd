@@ -79,7 +79,12 @@ summary(PCA)
 plot(PCA)
 
 # Let's add colors for the different groups and labels
-plot(PCA, pch=22, cex=1.5, bg=as.numeric(classifier$Location))
+plot.col=c("#0b006e", "#97e1fc") #set the colors you want for your plot. These will be linked alphabetically to your classifiers.
+names(plot.col)=levels(classifier$Location) #set classifier names to the colors
+plot.col=plot.col[match(classifier$Location, names(plot.col))] #assign color for all classifiers in your list
+
+plot(PCA, pch=22, cex=1.5, bg=plot.col) #plot PCA!
+
 text(PCA$x, labels = labels(PCA$x)[[1]], pos=3) #change position of text with pos (1=under, 2=left, 3=above, 4=right)
 
 # To view what the shape changes are along the component use plotRefToTarget
@@ -112,9 +117,25 @@ summary(fit.complex)
 anova(fit.location, fit.complex)
 ```
 
+To view differences between groups, use pairwise in RRPP (this package is a requirement of geomorph, so you do not need to install it separately)
+```{r Pairwise Comparisons}
+PW=pairwise(fit.location, groups = classifier$Location) #specify the groups that you want to compare
+summary(PW, confidence = 0.95, test.type = "dist") # Euclidian distance between means
+summary(PW, confidence = 0.95, test.type = "VC", angle.type = "deg") #correlation between mean vectors (angles in degrees)
+```
+
 Size might also account for shape variation (small fish are slim vs large fish are more rotund)
 
 To analyze this, we can use allometric analyses
+
+Allometry "shape scores" are just a projection
+    - We commonly use the method first (I think) advocated by Abby Drake and Chris Klingenberg back in 2008 to visualize allometric patterns.
+    - What they recommended is simply:
+       + Regressing shape (procrustes residuals) on size
+       + Extract the allometry vector (coefficients associated with size)
+       + Project shape onto the allometry vector to compute the (scalar) "shape score"
+       + Then regress the shape score back onto size.
+       
 ```{r Allometric analysis}
 # To test for allometry, we use the same format as the procrusties ANOVA!
 fit.size=procD.lm(gpa$coords ~ gpa$Csize, SS.type = "III")
@@ -128,7 +149,7 @@ summary(fit.size)
 #https://rdrr.io/cran/geomorph/man/shape.predictor.html
 
 #Regression score
-reg.plot = plot(fit.size, type="regression", reg.type = "RegScore", predictor = log(gpa$Csize), bg=as.numeric(classifier$Location), pch=22, cex=1.5) # make sure to have a predictor 
+reg.plot = plot(fit.size, type="regression", reg.type = "RegScore", predictor = log(gpa$Csize), bg=plot.col, pch=22, cex=1.5) # make sure to have a predictor 
 
 preds = shape.predictor(fit.size$GM$fitted, x= reg.plot$RegScore, Intercept=F, 
                          predmin = min(reg.plot$RegScore),
@@ -139,5 +160,5 @@ plotRefToTarget(meanshape, preds$predmax, mag=3, method = "points", links = link
 
 
 # Prediction line
-pred.plot = plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=as.numeric(classifier$Location), pch=22, cex=1.5)
+pred.plot = plot(fit.size, type="regression", reg.type = "PredLine", predictor = log(gpa$Csize), bg=plot.col, pch=22, cex=1.5)
 ```
