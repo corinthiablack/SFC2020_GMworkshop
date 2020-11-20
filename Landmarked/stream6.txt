@@ -1,0 +1,39 @@
+<shapes type=list>
+	<ruler.interval type=vector names=FALSE length=1 as.numeric=TRUE >1</ruler.interval>
+	<scaling.units type=vector names=FALSE length=1 as.numeric=FALSE >cm</scaling.units>
+	<scaling type=vector names=FALSE length=1 as.numeric=TRUE >0.00205759665704445</scaling>
+	<landmarks.pixel type=matrix rownames=TRUE colnames=FALSE nrow=12 ncol=2 as.numeric=TRUE >
+		anterior-mouth	835	1110
+		posterior-mouth	937	1210
+		eye-center	1011	1090
+		nape	1317	798
+		anterior-dorsal-fin-insertion	1979	656
+		dorsal-caudal-fin-insertion	3089	750
+		ventral-caudal-fin-insertion	3085	1045
+		anterior-anal-fin-insertion	2355	1271
+		anterior-pelvic-fin-insertion	1936	1364
+		anterior-pectoral-fin-insertion	1363	1267
+		operculum-base-isthmus	1173	1331
+		operculum-posterior-edge	1347	1142
+	</landmarks.pixel>
+	<landmarks.scaled type=matrix rownames=TRUE colnames=FALSE nrow=12 ncol=2 as.numeric=TRUE >
+		anterior-mouth	1.71809320863211	-2.28393228931934
+		posterior-mouth	1.92796806765065	-2.48969195502378
+		eye-center	2.08023022027194	-2.24278035617845
+		nape	2.70985479732754	-1.64196213232147
+		anterior-dorsal-fin-insertion	4.07198378429096	-1.34978340702116
+		dorsal-caudal-fin-insertion	6.3559160736103	-1.54319749278334
+		ventral-caudal-fin-insertion	6.34768568698212	-2.15018850661145
+		anterior-anal-fin-insertion	4.84564012733967	-2.61520535110349
+		anterior-pelvic-fin-insertion	3.98350712803805	-2.80656184020863
+		anterior-pectoral-fin-insertion	2.80450424355158	-2.60697496447531
+		operculum-base-isthmus	2.41356087871314	-2.73866115052616
+		operculum-posterior-edge	2.77158269703887	-2.34977538234476
+	</landmarks.scaled>
+	<ruler.points type=matrix rownames=TRUE colnames=FALSE nrow=3 ncol=2 as.numeric=TRUE >
+		Ruler point 1	1577	2860
+		Ruler point 2	2065	2860
+		Ruler point 3	2549	2856
+	</ruler.points>
+</shapes>
+
