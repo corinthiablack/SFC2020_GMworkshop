@@ -60,7 +60,7 @@ meanshape=mshape(gpa$coords)
 plot(meanshape) #NOTE: this function returns a mean shape with numbers in place of landmark names. These numbers will be used to create a links file that can outline the shape
 
 # Use landmark numbers to generate a file that will link landmarks together with a line (this file is already provided for you)
-links=read.csv("links.csv", header = F)
+links=read.csv("links.csv", header = F) #windows needs links_win.csv
 plotAllSpecimens(gpa$coords, links=links)
 ```
 
@@ -68,7 +68,7 @@ plotAllSpecimens(gpa$coords, links=links)
 ```{r PCA}
 # We will use classifier information to produce colored PCAs and in statistics
   # in this case we are comparing stream and reservoir fishes
-classifier=read.csv("classifiers.csv", header=T, row.names = 1)
+classifier=read.csv("classifiers.csv", header=T, row.names = 1) 
 
 # Preform the PCA using the GPA landmark coordinates
 PCA=gm.prcomp(gpa$coords)
@@ -91,7 +91,7 @@ text(PCA$x, labels = labels(PCA$x)[[1]], pos=3) #change position of text with po
 # To view what the shape changes are along the component use plotRefToTarget
   # The first shape listed will be grey and the last will be black
   # Shapes are found in the PCA list (see example below)
-plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$min, method = "points", links = links) # mean shape vs negative end of PC1
+plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$min, method = "vector", links = links) # mean shape vs negative end of PC1
 #method = "TPS", "vector", "points", or "surface" (surface only works with 3D data) try the different methods
 
 plotRefToTarget(meanshape, PCA$shapes$shapes.comp1$max, method = "points", links = links) # mean shape vs positive end of PC1
@@ -152,9 +152,7 @@ summary(fit.size)
 #Regression score
 reg.plot = plot(fit.size, type="regression", reg.type = "RegScore", predictor = log(gpa$Csize), bg=plot.col, pch=22, cex=1.5) # make sure to have a predictor 
 
-preds = shape.predictor(fit.size$GM$fitted, x= reg.plot$RegScore, Intercept=F, 
-                         predmin = min(reg.plot$RegScore),
-                         predmax = max(reg.plot$RegScore))
+preds = shape.predictor(fit.size$GM$fitted, x= reg.plot$RegScore, Intercept=F, predmin = min(reg.plot$RegScore), predmax = max(reg.plot$RegScore))
 
 plotRefToTarget(meanshape, preds$predmin, mag=3, method = "points", links = links)
 plotRefToTarget(meanshape, preds$predmax, mag=3, method = "points", links = links)
